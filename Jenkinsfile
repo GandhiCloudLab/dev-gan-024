@@ -364,7 +364,7 @@ spec:
                     # Real scanning ..... Check scan results
                     # trivy --clear-cache --severity LOW,MEDIUM,HIGH,CRITICAL ${APP_IMAGE}
 
-                    trivy --severity HIGH,CRITICAL ${APP_IMAGE}
+                    trivy ${APP_IMAGE}
                     # trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE}
                     my_exit_code=$?
                     echo "RESULT 1:--- $my_exit_code"
