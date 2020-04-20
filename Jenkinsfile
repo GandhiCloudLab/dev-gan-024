@@ -218,11 +218,11 @@ spec:
                     chmod a+rw ./env-config
                 '''
             }
-            stage('Build') {
-                sh '''
-                    ./gradlew assemble --no-daemon
-                '''
-            }
+            // stage('Build') {
+            //     sh '''
+            //         ./gradlew assemble --no-daemon
+            //     '''
+            // }
             // stage('Test') {
             //     sh '''#!/bin/bash
             //         ./gradlew testClasses --no-daemon
@@ -314,30 +314,30 @@ spec:
         //         '''
         //     }
         // }
-        container(name: 'buildah', shell: '/bin/bash') {
-            stage('Build image') {
-                sh '''#!/bin/bash
-                    set -e
-                    . ./env-config
+        // container(name: 'buildah', shell: '/bin/bash') {
+        //     stage('Build image') {
+        //         sh '''#!/bin/bash
+        //             set -e
+        //             . ./env-config
 
-		            echo TLSVERIFY=${TLSVERIFY}
-		            echo CONTEXT=${CONTEXT}
+		    //         echo TLSVERIFY=${TLSVERIFY}
+		    //         echo CONTEXT=${CONTEXT}
 
-		            if [[ -z "${REGISTRY_PASSWORD}" ]]; then
-		              REGISTRY_PASSWORD="${APIKEY}"
-		            fi
+		    //         if [[ -z "${REGISTRY_PASSWORD}" ]]; then
+		    //           REGISTRY_PASSWORD="${APIKEY}"
+		    //         fi
 
-                    APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:temp"
+        //             APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:temp"
 
-                    buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
-                    if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
-                        buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
-                    fi
-                    buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
+        //             buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
+        //             if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
+        //                 buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+        //             fi
+        //             buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
 
-                '''
-            }
-        }
+        //         '''
+        //     }
+        // }
         container(name: 'trivy', shell: '/bin/sh') {
             stage('Scan image using trivy') {
 
@@ -362,7 +362,7 @@ spec:
                     echo "ScanImage Before Trivy image scanning.... $APP_IMAGE"
 
                     # Real scanning ..... Check scan results
-                    trivy --exit-code 1 --severity HIGH,CRITICAL ${APP_IMAGE}
+                    trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE}
                     my_exit_code=$?
                     echo "RESULT 1:--- $my_exit_code"
 
