@@ -252,6 +252,8 @@ spec:
                 '''
             }
         }
+
+        
         container(name: 'node', shell: '/bin/bash') {
             stage('Tag release') {
                 sh '''#!/bin/bash
