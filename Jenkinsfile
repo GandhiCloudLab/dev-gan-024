@@ -400,6 +400,7 @@ spec:
                     if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
                         buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
                     fi
+                    buildah pull ${APP_IMAGE_TEMP}
                     buildah tag ${APP_IMAGE_TEMP} ${APP_IMAGE_FINAL}
                     buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE_FINAL}" "docker://${APP_IMAGE_FINAL}"
 
