@@ -315,7 +315,7 @@ spec:
         //     }
         // }
         // container(name: 'buildah', shell: '/bin/bash') {
-        //     stage('Build image') {
+        //     stage('Build and Push temp image') {
         //         sh '''#!/bin/bash
         //             set -e
         //             . ./env-config
@@ -327,13 +327,13 @@ spec:
 		    //           REGISTRY_PASSWORD="${APIKEY}"
 		    //         fi
 
-        //             APP_IMAGE="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:temp"
+        //             APP_IMAGE_TEMP="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:temp"
 
-        //             buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE} ${CONTEXT}
+        //             buildah bud --tls-verify=${TLSVERIFY} --format=docker -f ${DOCKERFILE} -t ${APP_IMAGE_TEMP} ${CONTEXT}
         //             if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
         //                 buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
         //             fi
-        //             buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE}" "docker://${APP_IMAGE}"
+        //             buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE_TEMP}" "docker://${APP_IMAGE_TEMP}"
 
         //         '''
         //     }
@@ -363,7 +363,7 @@ spec:
 
                     # Trivy scan
                     trivy ${APP_IMAGE}
-                    trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE}
+                    # trivy --exit-code 1 --severity CRITICAL ${APP_IMAGE}
 
                     # Trivy scan result processing
                     my_exit_code=$?
@@ -381,7 +381,31 @@ spec:
                 '''
             }
         }
+        container(name: 'buildah', shell: '/bin/bash') {
+            stage('Push final image') {
+                sh '''#!/bin/bash
+                    set -e
+                    . ./env-config
 
+		            echo TLSVERIFY=${TLSVERIFY}
+		            echo CONTEXT=${CONTEXT}
+
+		            if [[ -z "${REGISTRY_PASSWORD}" ]]; then
+		              REGISTRY_PASSWORD="${APIKEY}"
+		            fi
+
+                    APP_IMAGE_TEMP="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:temp"
+                    APP_IMAGE_FINAL="${REGISTRY_URL}/${REGISTRY_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}"
+
+                    if [[ -n "${REGISTRY_USER}" ]] && [[ -n "${REGISTRY_PASSWORD}" ]]; then
+                        buildah login -u "${REGISTRY_USER}" -p "${REGISTRY_PASSWORD}" "${REGISTRY_URL}"
+                    fi
+                    buildah tag ${APP_IMAGE_TEMP} ${APP_IMAGE_FINAL}
+                    buildah push --tls-verify=${TLSVERIFY} "${APP_IMAGE_FINAL}" "docker://${APP_IMAGE_FINAL}"
+
+                '''
+            }
+        }
 
         container(name: 'ibmcloud', shell: '/bin/bash') {
             stage('Deploy to DEV env') {
