@@ -127,7 +127,7 @@ spec:
         - name: TLSVERIFY
           value: "false"
         - name: INTERNAL_REGISTRY
-           value: "image-registry.openshift-image-registry.svc:5000"
+          value: "image-registry.openshift-image-registry.svc:5000"
         - name: REGISTRY_USER
           valueFrom:
             secretKeyRef:
@@ -163,7 +163,7 @@ spec:
             name: ibmcloud-apikey       
       env:
         - name: INTERNAL_REGISTRY
-           value: "image-registry.openshift-image-registry.svc:5000"               
+          value: "image-registry.openshift-image-registry.svc:5000"               
     - name: ibmcloud
       image: docker.io/garagecatalyst/ibmcloud-dev:1.0.10
       tty: true
